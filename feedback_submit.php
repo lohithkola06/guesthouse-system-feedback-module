@@ -79,7 +79,6 @@ VALUES (:app_id, :overall, :cleanliness, :staff, :comments);
     <h2 class="ok">✅ Feedback submitted successfully</h2>
     <p><b>Application ID:</b> <?= htmlspecialchars($appId) ?></p>
     <p class="muted">Stored locally in <code>feedback_storage.json</code> (placeholder mode).</p>
-    <p><a href="feedback_admin_list.php">View feedback list (admin placeholder)</a></p>
   </div>
 </body>
 </html>

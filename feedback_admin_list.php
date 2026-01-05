@@ -2,6 +2,13 @@
 // feedback_admin_list.php (PLACEHOLDER ADMIN VIEW)
 // Reads feedback from feedback_storage.json and displays it.
 
+$adminKey = 'test'; // update to a private shared secret
+$providedKey = $_GET['admin_key'] ?? '';
+if ($providedKey !== $adminKey) {
+  http_response_code(403);
+  die('Forbidden: missing or invalid admin key.');
+}
+
 $storageFile = __DIR__ . '/feedback_storage.json';
 $data = [];
 
@@ -52,10 +59,11 @@ usort($data, function($a, $b) {
   </div>
 
   <form method="GET">
+    <input type="hidden" name="admin_key" value="<?= htmlspecialchars($providedKey) ?>" />
     <input type="text" name="app_id" placeholder="Filter by Application ID"
            value="<?= htmlspecialchars($filterAppId) ?>" />
     <button type="submit">Filter</button>
-    <a href="feedback_admin_list.php" style="margin-left:10px;">Reset</a>
+    <a href="feedback_admin_list.php?admin_key=<?= urlencode($providedKey) ?>" style="margin-left:10px;">Reset</a>
   </form>
 </div>
 
@@ -73,7 +81,7 @@ usort($data, function($a, $b) {
         <th>Application ID</th>
         <th>Ratings</th>
         <th>Comments</th>
-        <th>Submitted At</th>
+        <th>Submitted At (IST)</th>
       </tr>
     </thead>
     <tbody>
@@ -81,6 +89,19 @@ usort($data, function($a, $b) {
         <tr><td colspan="4" class="muted">No feedback found.</td></tr>
       <?php else: ?>
         <?php foreach ($data as $row): ?>
+          <?php
+            $createdAtRaw = $row['created_at'] ?? '';
+            $createdAtDisplay = $createdAtRaw;
+            if ($createdAtRaw !== '') {
+              try {
+                $dt = new DateTime($createdAtRaw);
+                $dt->setTimezone(new DateTimeZone('Asia/Kolkata'));
+                $createdAtDisplay = $dt->format('Y-m-d H:i:s T');
+              } catch (Exception $e) {
+                $createdAtDisplay = $createdAtRaw;
+              }
+            }
+          ?>
           <tr>
             <td><b><?= htmlspecialchars($row['application_id'] ?? '') ?></b></td>
             <td>
@@ -89,7 +110,7 @@ usort($data, function($a, $b) {
               Staff: <?= htmlspecialchars($row['rating_staff'] ?? '—') ?>
             </td>
             <td><?= nl2br(htmlspecialchars($row['comments'] ?? '')) ?></td>
-            <td class="muted"><?= htmlspecialchars($row['created_at'] ?? '') ?></td>
+            <td class="muted"><?= htmlspecialchars($createdAtDisplay) ?></td>
           </tr>
         <?php endforeach; ?>
       <?php endif; ?>
